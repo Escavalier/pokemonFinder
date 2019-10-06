@@ -16,5 +16,8 @@
   "bugs": {
     "url": "https://github.com/Gravehaus/pokemonFinder/issues"
   },
-  "homepage": "https://github.com/Gravehaus/pokemonFinder#readme"
+  "homepage": "https://github.com/Gravehaus/pokemonFinder#readme",
+  "dependencies": {
+    "express": "^4.17.1"
+  }
 }

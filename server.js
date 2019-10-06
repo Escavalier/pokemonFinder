@@ -7,81 +7,53 @@
 //
 
 
-// ==============================================================================
-// DEPENDENCIES
-// Series of npm packages that we will use to give our server useful functionality
-// ==============================================================================
-
-var express = require("express");
-var bodyParser = require("body-parser");
-var path = require("path");
+var friends = require("./data/pokemon");
 
 
+module.exports = function(app) {
+  // Return all friends found in friends.js as JSON
+  app.get("/api/friends", function(req, res) {
+    res.json(friends);
 
+    console.log(__dirname);
 
+  });
 
+  app.post("/api/friends", function(req, res) {
+    console.log(req.body.scores);
 
-// ==============================================================================
-// EXPRESS CONFIGURATION
-// This sets up the basic properties for our express server
-// ==============================================================================
+    // Receive user details (name, photo, scores)
+    var user = req.body;
 
-// Tells node that we are creating an "express" server
-var app = express();
+    // parseInt for scores
+    for(var i = 0; i < user.scores.length; i++) {
+      user.scores[i] = parseInt(user.scores[i]);
+    }
 
-// Sets an initial port. We"ll use this later in our listener
-var PORT = process.env.PORT || 8080;
+    // default friend match is the first friend but result will be whoever has the minimum difference in scores
+    var bestFriendIndex = 0;
+    var minimumDifference = 40;
 
-// BodyParser makes it possible for our server to interpret data sent to it.
-// The code below is pretty standard.
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(bodyParser.text());
-app.use(bodyParser.json({ type: "application/vnd.api+json" }));
+    // in this for-loop, start off with a zero difference and compare the user and the ith friend scores, one set at a time
+    //  whatever the difference is, add to the total difference
+    for(var i = 0; i < friends.length; i++) {
+      var totalDifference = 0;
+      for(var j = 0; j < friends[i].scores.length; j++) {
+        var difference = Math.abs(user.scores[j] - friends[i].scores[j]);
+        totalDifference += difference;
+      }
 
-app.use('/static', express.static(path.join(__dirname, 'app/public')))
+      // if there is a new minimum, change the best friend index and set the new minimum for next iteration comparisons
+      if(totalDifference < minimumDifference) {
+        bestFriendIndex = i;
+        minimumDifference = totalDifference;
+      }
+    }
 
+    // after finding match, add user to friend array
+    friends.push(user);
 
-
-
-
-
-
-// ================================================================================
-// ROUTER
-// The below points our server to a series of "route" files.
-// These routes give our server a "map" of how to respond when users visit or request data from various URLs.
-// ================================================================================
-
-require("./app/routing/apiRoutes.js")(app);
-require("./app/routing/htmlRoutes.js")(app);
-
-
-
-
-
-
-
-
-// ==============================================================================
-// LISTENER
-// The below code effectively "starts" our server
-// ==============================================================================
-
-app.listen(PORT, function() {
-  console.log("App listening on PORT: " + PORT);
-});
-
-// // server.js
-//
-// const express = require('express');
-// const app = express();
-// const path = require('path');
-//
-// app.get('/', function(req, res) {
-//   res.sendFile(path.join(__dirname, 'home.html'));
-// });
-//
-// app.listen(process.env.PORT || 4000, function(){
-//   console.log('Your node js server is running');
-// });
+    // send back to browser the best friend match
+    res.json(friends[bestFriendIndex]);
+  });
+};
