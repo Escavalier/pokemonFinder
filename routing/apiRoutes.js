@@ -1,46 +1,71 @@
-var pokemon = require("../data/pokemon");
+//_____      _                                ______    _                _   ______ _           _
+//|  __ \    | |                              |  ____|  (_)              | | |  ____(_)         | |
+//| |__) |__ | | _____ _ __ ___   ___  _ __   | |__ _ __ _  ___ _ __   __| | | |__   _ _ __   __| | ___ _ __
+//|  ___/ _ \| |/ / _ \ '_ ` _ \ / _ \| '_ \  |  __| '__| |/ _ \ '_ \ / _` | |  __| | | '_ \ / _` |/ _ \ '__|
+//| |  | (_) |   <  __/ | | | | | (_) | | | | | |  | |  | |  __/ | | | (_| | | |    | | | | | (_| |  __/ |
+//|_|   \___/|_|\_\___|_| |_| |_|\___/|_| |_| |_|  |_|  |_|\___|_| |_|\__,_| |_|    |_|_| |_|\__,_|\___|_|
+//
 
-module.exports = function(app) {
-  // Return all pokemon found in pokemon.js as JSON
-  app.get("/api/pokemon", function(req, res) {
+
+// The apiRoutes.js file includes two basic routes for app.get function and app.post function which used for displaying a JSON data and incoming survey results of all possible pokemon:
+// The app.post(in the apiRoutes.js) used to handle the compatibility logic.
+
+
+let pokemon = require('../data/pokemon.js');
+
+
+
+// Routing the apiRoutes with the app.get and app.post functions
+module.exports = function (app) {
+  // The app.get request handles when user 'visits' a page
+  app.get('/api/pokemon', function (req, res) {
     res.json(pokemon);
   });
+  // The app.post request handles when a user submits a form and thus submits data to the survey.
+  app.post('/api/pokemon', function (req, res) {
+    // loop through all of the possible options
+    let bestMatch = {
+      name: "",
+      photo: "",
+      pokemonDifference: 1000
+    };
 
-  app.post("/api/pokemon", function(req, res) {
-    console.log(req.body.scores);
+    // To take the result of the user's survey POST and parse it
+    let userData = req.body;
+    let userScores = userData.scores;
+    // To take the results of the user's name and photo, other than the survey questions, to post and parse it
+    let userName = userData.name;
+    let userPhoto = userData.photo;
 
-    // Receive user details (name, photo, scores)
-    var user = req.body;
+    // The variable used to calculate the difference b/n the user's scores and the scores of each user
+    let totalDifference = 0;
 
-    // parseInt for scores
-    for(var i = 0; i < user.scores.length; i++) {
-      user.scores[i] = parseInt(user.scores[i]);
+    //loop through the pokemon data array of objects to get each pokemon scores
+    for (let i = 0; i < pokemon.length - 1; i++) {
+      console.log(pokemon[i].name);
+      totalDifference = 0;
+
+      //loop through that pokemon score and the users score and calculate the absolute difference between the two and push that to the total difference variable set above
+      for (let j = 0; j < 10; j++) {
+        // We calculate the difference between the scores and sum them into the totalDifference
+        totalDifference += Math.abs(parseInt(userScores[j]) - parseInt(pokemon[i].scores[j]));
+        // If the sum of differences is less then the differences of the current "best match"
+        if (totalDifference <= bestMatch.pokemonDifference) {
+
+          // Reset the bestMatch to be the new friend.
+          bestMatch.name = pokemon[i].name;
+          bestMatch.photo = pokemon[i].photo;
+          bestMatch.pokemonDifference = totalDifference;
+        }
+      }
     }
 
-    // default friend match is the first friend but result will be whoever has the minimum difference in scores
-    var bestFriendIndex = 0;
-    var minimumDifference = 40;
+    // The push method use to save user's data to the database
+    pokemon.push(userData);
+    console.log(pokemon)
 
-    // in this for-loop, start off with a zero difference and compare the user and the ith friend scores, one set at a time
-    //  whatever the difference is, add to the total difference
-    for(var i = 0; i < pokemon.length; i++) {
-      var totalDifference = 0;
-      for(var j = 0; j < pokemon[i].scores.length; j++) {
-        var difference = Math.abs(user.scores[j] - pokemon[i].scores[j]);
-        totalDifference += difference;
-      }
+    //The res.json method will return a JSON data with the user's match which was looped through pokemon data array.
+    res.json(bestMatch);
 
-      // if there is a new minimum, change the best friend index and set the new minimum for next iteration comparisons
-      if(totalDifference < minimumDifference) {
-        bestFriendIndex = i;
-        minimumDifference = totalDifference;
-      }
-    }
-
-    // after finding match, add user to friend array
-    pokemon.push(user);
-
-    // send back to browser the best friend match
-    res.json(pokemon[bestFriendIndex]);
   });
 };
