@@ -17,19 +17,19 @@
 
 
 
-let friends = require("./data/pokemon");
+let pokemon = require("./data/pokemon");
 
 
 module.exports = function(app) {
-  // Return all friends found in friends.js as JSON
-  app.get("/api/friends", function(req, res) {
-    res.json(friends);
+  // Return all pokemon found in pokemon.js as JSON
+  app.get("/api/pokemon", function(req, res) {
+    res.json(pokemon);
 
     console.log(__dirname);
 
   });
 
-  app.post("/api/friends", function(req, res) {
+  app.post("/api/pokemon", function(req, res) {
     console.log(req.body.scores);
 
     // Receive user details (name, photo, scores)
@@ -46,10 +46,10 @@ module.exports = function(app) {
 
     // in this for-loop, start off with a zero difference and compare the user and the ith friend scores, one set at a time
     //  whatever the difference is, add to the total difference
-    for(let i = 0; i < friends.length; i++) {
+    for(let i = 0; i < pokemon.length; i++) {
       let totalDifference = 0;
-      for(let j = 0; j < friends[i].scores.length; j++) {
-        let difference = Math.abs(user.scores[j] - friends[i].scores[j]);
+      for(let j = 0; j < pokemon[i].scores.length; j++) {
+        let difference = Math.abs(user.scores[j] - pokemon[i].scores[j]);
         totalDifference += difference;
       }
 
@@ -61,9 +61,9 @@ module.exports = function(app) {
     }
 
     // after finding match, add user to friend array
-    friends.push(user);
+    pokemon.push(user);
 
     // send back to browser the best friend match
-    res.json(friends[bestFriendIndex]);
+    res.json(pokemon[bestFriendIndex]);
   });
 };
