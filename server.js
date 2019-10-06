@@ -7,6 +7,16 @@
 //
 
 
+
+// npm install express - https://www.npmjs.com/package/express
+// npm install body-parser - https://www.npmjs.com/package/body-parser
+// npm install path - https://www.npmjs.com/package/path
+
+
+
+
+
+
 var friends = require("./data/pokemon");
 
 
